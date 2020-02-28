@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- xmlns="http://jboss.com/products/seam/components" -->
+<system 
+	xmlns:security="http://jboss.com/products/seam/security" xmlns:mail="http://jboss.com/products/seam/mail">
+		<environment>
+				<!-- # System Environment State, legal values: PROD, TEST,  "PROD" stands for Production Environment, while "TEST" for Test Environment -->
+				<system.environment.state>PROD</system.environment.state>
+				<!-- # System Environment Verison ,  DPC name and environment identification. For example: ACCA PROD -->
+				<system.environment.version>Deploy  Test</system.environment.version>
+				<!-- # Current DPC Identifier . For example: ACCA -->
+				<system.dpc.identifier>ACCA</system.dpc.identifier>
+		</environment>
+		<subsysenvironment>
+				<!-- # SubSystem Environment State, legal values: PROD, TEST,  "PROD" stands for Production Environment, while "TEST" for Test Environment -->
+				<subsystem.environment>TEST</subsystem.environment>
+		</subsysenvironment>	
+		<ilds>
+				<!-- # ILDS state,legal values: ILDS, NO_ILDS,  "ILDS" stands for ILDS Available, while "NO_ILDS" for Unavailable. -->
+				<system.ilds.state>ILDS</system.ilds.state>
+		</ilds>
+		
+		<!-- DataSource Configuration -->
+		<datasources>
+				<oracle.URL>
+						<!-- oracle database connection, if test system only have one oracle server, slave-host and slave-port can be blank or be same with master configuraion -->
+						<master-host>10.1.71.150</master-host>
+						<master-port>1521</master-port>
+						<slave-host>10.1.71.150</slave-host>
+						<slave-port>1521</slave-port>
+						<SERVICE_NAME>ISIS2QA2</SERVICE_NAME>
+						<!-- The username and password of common schema -->
+						<username>nbs_common</username>
+						<password>ABCabc123</password>
+				</oracle.URL>
+				
+				<!-- The datasource configuration, the datasource name must be same with jboss configuration in jboss configuration file(standalone.xml for web and execution server, standalone-full.xml for schedule server  -->
+				<!--datasource name="bspGroupLV"--> 
+						<!-- database instance -->
+						<!--instance>ISIS2QA2</instance>
+						<username>nbslv</username>
+						<password>ABCabc123</password-->
+						<!-- all the bsps of this schema contains, it means these bsps' ticket data will be loaded into this schema. -->
+						<!--bsps>FI,IE,DK,EE,IS,LT,LV,NO,SE,KZ,AZ,GE,UA</bsps>
+				</datasource-->
+				
+				<datasource name="bspGroupGR"> 
+						<!-- database instance -->
+						<instance>ISIS2QA2</instance>
+						<username>nbsgr</username>
+						<password>ABCabc123</password>
+						<!-- all the bsps of this schema contains, it means these bsps' ticket data will be loaded into this schema. -->
+						<bsps>NO,DK,SE,LV,LT,EE,IS,FI,KZ,AZ,CY,GR</bsps>
+						<!--bsps>BG,PL,RO,IL,CY,GR,MT,CA,BM</bsps-->
+				</datasource>
+				
+				<!-- If IBSPs system only have one datasource, the following datasource configuration can be removed 
+				<datasource name="bspGroupBG"> 
+						<instance>ISIS2QA</instance>
+						<username>nbsbg</username>
+						<password>ABCabc123</password>
+						<bsps>BG,PL,IL</bsps>
+				</datasource>-->
+				
+				<!-- If there are more than two datasources, you can copy above one datasource and modify the parameters,
+				  Add  new datasource   -->
+				
+				
+		</datasources>
+		
+		<!-- AD Server Configuration -->
+		<!-- server-address: the IP address of AD server  
+				 server-port: the open port of AD server 
+				 user-DN-prefix: this value is prefixed to the front of the username to locate the user's record, the default value is “uid=”. For example, this value is “CN=” in ACCA AD server.
+				 user-DN-suffix: This value is appended to the end of the username to locate the user's record, “CN=” is user-DN-prefix, “Users” is a fixed value. “ibsps.com” is domain cotroller’s name, it must be split into“DC”variable by“.”
+				 bind-DN: This is the context used to bind to the AD server, the format is like “CN=ibspsadmin, CN=Users, DC=ibsps, DC=com”.  “ibspsadmin” is one username that has adminstrator privilege in AD server. 
+				 bind-credentials: the password of ibspsadmin user -->
+		<security:active-directory-identity-store
+		name="org.jboss.seam.security.identityStore" server-address="10.1.71.101"
+		server-port="636" user-DN-prefix="CN="
+		user-DN-suffix=", CN=Users, DC=isis2, DC=acca, DC=com, DC=cn" user-context-DN=""
+		bind-DN="CN=isis2admin, CN=Users, DC=isis2, DC=acca, DC=com, DC=cn" bind-credentials="ABCabc123"
+		user-name-attribute="" user-object-classes="" />
+		<!-- If there is more than one AD server, you can copy above AD configuration and modify the parameters 
+		      Add new AD server configuration     -->
+		
+		<!-- Mail Configuration -->
+		<mail:mail-session debug="false" host="10.8.1.55"
+		port="25" tls="false" ssl="false" username="ibsps"
+		password="seurat@2016" />
+		<!--username ISIS2: the mail account IBSPs system using to register new web account, IBSPs system will user this mail account to send the initial password to new web user.  -->
+		<component name="mailSender" class="org.iata.ios.email.MailSender"
+		scope="APPLICATION" auto-create="true" default-template="/WEB-INF/template/mailTemplate.xhtml"
+		from-name="ibsps" from-address="ibsps@acca.com.cn" />
+		<!-- Mail Configuration -->
+		
+		
+		<!-- Bo Server Configuration -->
+		<!-- host: host name of bo server
+		     port: CMS port of bo server, the default port is 6400. If you changed the port while installing BO server, then you should set this port as you changed. 
+		     			 You can refer to 23 step of 3.5.3 in 《IBSPs Installation and Deployment Manual.doc》， the CMS port is set on this step.
+		     user: the username of CMS, it only can be Administrator, so this parameter no need to modify.
+		     password: password of CMS’ username, this parameter is set on 23 step of 3.5.3 in 《IBSPs Installation and Deployment Manual.doc》.--> 
+		<component name="boEnterpriseFactory" host="ISIS2-Q-RP-3" port="6400"
+                user="Administrator" password="ACCA1234" />
+    <!-- If there is only one bo server, the following bo server configuration can be removed -->
+    <component name="boEnterpriseFactory" host="ISIS2-Q-RP-4" port="6400"
+                user="Administrator" password="ACCA1234" />
+    <!-- If there are more than two bo servers, you can copy above one bo configuration and modify the parameters,
+				  Add  new bo server configuraion   -->  
+
+
+	
+    <inbound>
+    		<!-- inbound.online.root.dir: the value of this parameter stands for the root directory of input files loaded into IBSPs -->
+    		<inbound.online.root.dir>/isis2qa/appdata/newVersionTest/APP/Online/Inbound</inbound.online.root.dir>
+    		
+    		<!-- inbound.archived.root.dir: the value of this parameter stands for the root directory of archived input files thress months ago. -->
+    		<inbound.archived.root.dir>/isis2qa/appdata/newVersionTest/APP/Archived/Inbound</inbound.archived.root.dir>
+    		
+    		<!-- inbound.channel.root.dir: the value of this parameter stands for the root directory of input file channel, IBSPs system will scan this directory to load files.-->
+    		<inbound.channel.root.dir>/isis2qa/appdata/newVersionTest/FTP/Channel</inbound.channel.root.dir>
+   	</inbound>
+    
+    <!-- Outbound Configuration -->        
+    <outbound>
+    		<!-- outbound.online.root.dir: the value of this parameter stands for the root directory of IBSPs output files. 
+    																	 All the output files will be generated in the subfolders of this directory. -->
+    		<outbound.online.root.dir>/isis2qa/appdata/newVersionTest/APP/Online/Outbound</outbound.online.root.dir>
+    		<!-- outbound.archived.root.dir: the value of this parameter stands for the root directory of archived output files thress months ago. -->
+    		<outbound.archived.root.dir>/isis2qa/appdata/newVersionTest/APP/Archived/Outbound</outbound.archived.root.dir>
+    		
+    		<!-- Different timezone's BSP outbound dir name -->
+    		<timezone>
+    				<!-- Outbound fold and bsps belongs to timezone fold configuraion -->
+    				
+    				<!-- outbound.timezone.nthasia.dir.name: the value of this parameter stands for the folder name of north asia timezone. 
+    																								 But in fact, the folder name can be named to any legal name on linux OS. -->
+    				<outbound.timezone.nthasia.dir.name>NorthAsia</outbound.timezone.nthasia.dir.name>
+    				<!-- outbound.timezone.nthasia.bsps: the bsps north asia timezone folder contains, all the output files of these bsps will be generated into asia timezone folder. -->
+    				<outbound.timezone.nthasia.bsps>CN,HK,TW,MO,MN</outbound.timezone.nthasia.bsps>
+    							
+    				<outbound.timezone.asia-pacific.dir.name>AsiaPacific</outbound.timezone.asia-pacific.dir.name>
+    				<outbound.timezone.asia-pacific.bsps>AU,PF,GU,FM,NC,NZ,FJ,TO,WS,PG,PH,ID,II,PK,SG,JP,TH,VN,KH,BD,NP,MY,LK</outbound.timezone.asia-pacific.bsps>
+    				
+    				<outbound.timezone.europe.dir.name>Europe</outbound.timezone.europe.dir.name>
+						<outbound.timezone.europe.bsps>FI,IE,DK,EE,IS,LT,LV,NO,SE,KZ,AZ,GE,UA,BG,PL,RO,IL,CY,GR,MT</outbound.timezone.europe.bsps>
+						
+						<outbound.timezone.americas.dir.name>Americas</outbound.timezone.americas.dir.name>
+						<outbound.timezone.americas.bsps>CA,BM</outbound.timezone.americas.bsps>
+						
+						<outbound.timezone.mena.dir.name>Mena</outbound.timezone.mena.dir.name>
+						<outbound.timezone.mena.bsps>TE,ST</outbound.timezone.mena.bsps>
+						<!-- All the five avove timezones are hard coding in java program, so you can’t add new timezone. If you don’t need five output timezone, you can remove redundant timezones. -->
+    		</timezone>
+    </outbound>
+    
+    <!-- remote client connected to schedule -->
+    <!-- The following ip is schedule server's ip, if there are two schedule servers, such as another schedule server is 10.1.71.140,
+    	   then the provider.url can be configured as remote://10.1.71.139:4447,remote://10.1.71.140:4447 -->
+    <java.naming.provider.url>remote://10.1.71.139:14447</java.naming.provider.url>
+    <!-- The following use is created on 3.2.3.3 step of 《IBSPs Installation and Deployment Manual.doc》 -->
+    <java.naming.security.principal>jbossappuser</java.naming.security.principal>
+    <java.naming.security.credentials>jboss_1234</java.naming.security.credentials>
+    
+	
+
+	
+	
+    <!-- IATA SSO configuration -->
+    <PicketLinkSP xmlns="urn:picketlink:identity-federation:config:2.1"
+		ServerEnvironment="tomcat" BindingType="POST" SupportsSignatures="true"
+		CanonicalizationMethod="http://www.w3.org/2001/10/xml-exc-c14n#"
+		ErrorPage="/sso/error.html" LogOutPage="/sso/logout.html">
+		<!-- IdentityURL: the URL of IATA SSO server, the format is like “https://domain/adfs/ls/”. 
+											For example, if the domain is “ibspssso.acca.com.cn”, then IdentityURL will be https://ibspssso.acca.com.cn/adfs/ls. -->
+		<IdentityURL>https://ftpisis2.acca.com.cn/adfs/ls/</IdentityURL>
+		<!-- ServiceURL: the URL of IBSPs system, the format is like https://domain/seurat-web/sso/. 
+										 For example, if the domain is “ibsps.acca.com.cn”, then ServiceURL will be https://ibsps.acca.com.cn/seurat-web/sso/ -->
+		<ServiceURL>https://ibspsuat.acca.com.cn/seurat-web/sso/</ServiceURL>
+		<KeyProvider
+			ClassName="org.picketlink.identity.federation.core.impl.KeyStoreKeyManager">
+			<!-- KeyStoreURL: the value of this parameter stands for the key file’s savePath on web server. The key file is generated when creating key store on Apache proxy server. -->
+			<Auth Key="KeyStoreURL" Value="/isis2qa/appdata/newVersionTest/KEY/ibspsuat.acca.com.cn.jks" />
+			<Auth Key="KeyStorePass" Value="12345678" />
+			<Auth Key="SigningKeyPass" Value="12345678" />
+			<!-- SigningKeyAlias: the signing key alias of key file. -->
+			<Auth Key="SigningKeyAlias" Value="ibspsuat.acca.com.cn" />
+			<!-- ValidatingAlias: the Key attribute must be same with domain of IATA SSO server, such as “ibspssso.acca.com.cn”. And the Value attribute is the name of SSO server certificate file, 
+														for example, if certificate file name is “adfs_token_sign.cer”, then the Value attribute will be “adfs_token_sign”. -->
+			<ValidatingAlias Key="ftpisis2.acca.com.cn" Value="adfs_token_sign" />
+		</KeyProvider>
+	</PicketLinkSP>
+
+	<!--DO NOT EDIT THIS CONFIGURATION UNLESS YOU KNOW WHAT YOU ARE DOING-->
+	<!-- schedule server configuraion-->
+    <job-schedule>
+		<task.createjob.crontab>0 0 19 20 * ?</task.createjob.crontab>
+		<task.jobscanner.interval>60000</task.jobscanner.interval>
+		<task.inputscanner.interval>60000</task.inputscanner.interval>
+		<task.start.delay>60000</task.start.delay>
+		<task.publisher.subscriber.interval>300000</task.publisher.subscriber.interval>
+	</job-schedule>
+	
+    <!-- Report,Job,Package Const  Configuration -->	
+	<report-const-config>
+		<report.generation.threadnum.SEND_TO_BO>50</report.generation.threadnum.SEND_TO_BO>
+		<report.generation.threadnum.GENERATE_HOT>20</report.generation.threadnum.GENERATE_HOT>
+		<report.generation.threadnum.GENERATE_REPORT>5</report.generation.threadnum.GENERATE_REPORT>		
+		<report.generation.threadnum.GENERATE_COMPLETE_CSI>1</report.generation.threadnum.GENERATE_COMPLETE_CSI>
+		<report.generation.threadnum.PROCESS_CREDIT_CARD>1</report.generation.threadnum.PROCESS_CREDIT_CARD>
+		<report.distribution.threadnum>10</report.distribution.threadnum>
+		<packagelog.scanner.reportlog.batchsize>1000</packagelog.scanner.reportlog.batchsize>
+		<packagelog.scanner.thread.thread1.bspcode>AA</packagelog.scanner.thread.thread1.bspcode>
+		<packagelog.scanner.thread.thread2.bspcode>CC</packagelog.scanner.thread.thread2.bspcode>
+		<packagelog.scanner.thread.thread3.bspcode>NZ,SE,SG,JP</packagelog.scanner.thread.thread3.bspcode>
+	</report-const-config>
+	
+	<!-- load hot split  thread configuraion -->
+	<loadhot.thread.count>10</loadhot.thread.count>
+	
+	<!-- load hot redis configuraion  -->
+	<redis-config>
+		<remote.host>testip</remote.host>
+		<remote.port>6379</remote.port>
+		<remote.password>redispassword</remote.password>
+		<process.isRedis>true</process.isRedis>
+	</redis-config>
+	
+	<!-- web session and http setting     -->
+	<!-- Non mandatory -->
+	<web-xml-config>
+		<session-config>
+			<session-timeout>1000</session-timeout>
+			<!-- Set JSESSIONID Cookie in HTTPS, if <cookie-config> tag below is present. -->
+			<cookie-config>
+				<http-only>true</http-only>
+				<secure>true</secure>
+			</cookie-config>
+		</session-config>
+	</web-xml-config>
+	<!-- job-execution setting     -->
+	<job-execution>
+	<!-- Allow load 2 RET files per exec server     -->
+		<TASK.LOAD_RET.weight>49</TASK.LOAD_RET.weight>
+	<!-- BO clusters workload evalution, only required if SMNP installed, please maintain master/slave node hostname of each BO cluster-->
+	<BO_REPORT.CMS.BOs>BO-HOSTNAME-1-1, BO-HOSTNAME-1-2, BO-HOSTNAME-1-3,BO-HOSTNAME-2-1,BO-HOSTNAME-2-2,BO-HOSTNAME-2-3</BO_REPORT.CMS.BOs>
+
+	</job-execution>
+</system>

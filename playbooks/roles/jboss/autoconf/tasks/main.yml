@@ -1,0 +1,99 @@
+---
+# tasks file for autoconf
+- block:
+    - name: create a build directory
+      tempfile:
+        state: directory
+        suffix: .build
+      register: autoconf_build_directory_output
+
+    - name: define variables
+      set_fact:
+        ibsps_release_packages: "{{ ibsps_release_packages_context_output.stdout | trim }}/Software Packages"
+        autoconf_build_workspace: "{{ autoconf_build_directory_output.path }}"
+
+    - name: copy the AutomaticConfiguration utilities to the build directory
+      unarchive:
+        src: "{{ acd_addons_autoconfig_path }}"
+        dest: "{{ autoconf_build_workspace }}"
+
+    - name: copy the config file of AutomaticConfiguration utilities to the build directory
+      copy:
+        src: "{{ ibsps_environment_configure_path }}"
+        dest: "{{ autoconf_build_workspace }}/configuration.xml"
+
+    - name: copy the ibsps realease packages to the build directory
+      copy:
+        src: "{{ item }}"
+        dest: "{{ autoconf_build_workspace }}/earSourceFiles/"
+      with_fileglob:
+        - "{{ ibsps_release_packages }}/*.ear"
+
+    - name: prepare to run the AutomaticConfiguration utilities
+      file:
+        path: "{{ autoconf_build_workspace }}/conf.sh"
+        state: touch
+        mode: "0755"
+
+    - name: run the AutomaticConfiguration utilities
+      shell: "cd '{{ autoconf_build_workspace }}' && ./conf.sh"
+      args:
+        executable: /bin/bash
+      register: autoconf_output
+
+    - name: check the execution results of the AutomaticConfiguration utilities
+      stat:
+        path: "{{ autoconf_build_workspace }}/ConfigurationError.Log"
+      register: autoconf_result
+
+    - name: check if the execution results were successful
+      fail:
+        msg: "{{ autoconf_output.stderr }}"
+      when: autoconf_output.stderr != "" or autoconf_result.stat.size > 0
+
+    - name: prepare to copy the adjusted ibsps realease packages to the shared directory
+      file:
+        path: "{{ ibsps_nas_shared_directory }}/autodeployments/"
+        state: directory
+        mode: "0755"
+
+    - name: copy the adjusted ibsps realease packages to the shared directory
+      shell: |
+        cd "{{ ibsps_nas_shared_directory }}/autodeployments/" && \
+        find "{{ autoconf_build_workspace }}/earFiles/" -name "*.ear" -exec cp "{}" .  \;
+
+    - name: logging the stdout details
+      copy:
+        content: "{ 'failed': false, 'msg':'the automatic configuration task is completed' }"
+        dest: "{{ autoconf_build_workspace }}/stdout.json"
+
+  rescue:
+    - name: logging the stderr details
+      copy:
+        content: "{{ ansible_failed_result | to_nice_json }}"
+        dest: "{{ autoconf_build_workspace }}/stderr.json"
+
+    - fail:
+        msg: "an error occurred and the next tasks need to be stopped immediately"
+
+  always:
+    - name: create a build history archive file
+      archive:
+        path:
+          - "{{ autoconf_build_workspace }}/ConfigurationError.Log"
+          - "{{ autoconf_build_workspace }}/*.json"
+        dest: "{{ autoconf_build_workspace }}/autoconf_history_{{ sysdate }}.zip"
+        format: zip
+
+    - name: save the archive file to localhost
+      fetch:
+        src: "{{ autoconf_build_workspace }}/autoconf_history_{{ sysdate }}.zip"
+        dest: "{{ acd_build_history_path }}/"
+        flat: true
+
+    - name: remove the build directory
+      file:
+        path: "{{ autoconf_build_workspace }}"
+        state: absent
+
+  run_once: true

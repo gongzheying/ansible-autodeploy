@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+
+echo "---update pck_dbadmin_change package---"
+"{{ oracle_home }}/bin/sqlplus" -s "{{ ibsps_db_account_nbs }}" <<EOF
+WHENEVER OSERROR EXIT FAILURE;
+WHENEVER SQLERROR EXIT SQL.SQLCODE;
+@PCK_DBADMIN_CHANGE.pck;
+exit;
+EOF
+rc=$?
+if [ $rc -ne 0 ]; then
+    echo "!!!update pck_dbadmin_change package: failed!!!"
+    exit $rc
+else 
+    echo "***update pck_dbadmin_change package: completed***"
+fi
+
+echo "---set IBSPS_SCHEMAS's version and connstr---"
+"{{ oracle_home }}/bin/sqlplus" -s "{{ ibsps_db_account_nbs }}" <<EOF
+WHENEVER OSERROR EXIT FAILURE;
+WHENEVER SQLERROR EXIT SQL.SQLCODE;
+update IBSPS_SCHEMAS set CONN_STRING='conn {{ ibsps_db_account_nbs }}@{{ oracle_sid }}', VERSION='{{ ibsps_db_current_version }}' where SCHEMA_TYPE='NBS';
+update IBSPS_SCHEMAS set CONN_STRING='conn {{ ibsps_db_account_nbs_common }}@{{ oracle_sid }}', VERSION='{{ ibsps_db_current_version }}' where SCHEMA_TYPE='NBS_COMMON';
+delete from IBSPS_EXELOG;
+commit;
+exit;
+EOF
+rc=$?
+if [ $rc -ne 0 ]; then
+    echo "!!!set IBSPS_SCHEMAS's version and connstr: failed!!!"
+    exit $rc
+else 
+    echo "***set IBSPS_SCHEMAS's version and connstr: completed***"
+fi
+
+echo "---generate database_change.sql---"
+"{{ oracle_home }}/bin/sqlplus" -s "{{ ibsps_db_account_nbs }}" <<EOF
+WHENEVER OSERROR EXIT FAILURE;
+WHENEVER SQLERROR EXIT SQL.SQLCODE;
+@run_changelog.pdc;
+exit;
+EOF
+rc=$?
+if [ $rc -ne 0 ]; then
+    echo "!!!generate database_change.sql: failed!!!"
+    exit $rc
+else
+    echo "***generate database_change.sql: completed***"
+fi
+
+echo "---run database_change.sql---"
+"{{ oracle_home }}/bin/sqlplus" -s "{{ ibsps_db_account_nbs }}" <<EOF
+WHENEVER OSERROR EXIT FAILURE;
+WHENEVER SQLERROR EXIT SQL.SQLCODE;
+@database_change.sql;
+exit;
+EOF
+rc=$?
+if [ $rc -ne 0 ]; then
+    echo "!!!run database_change.sql: failed!!!"
+    exit $rc
+else
+    echo "***run database_change.sql: completed***"
+fi
+
+echo "---generate database_change_grant_synonym.sql---"
+"{{ oracle_home }}/bin/sqlplus" -s "{{ ibsps_db_account_nbs }}" <<EOF
+WHENEVER OSERROR EXIT FAILURE;
+WHENEVER SQLERROR EXIT SQL.SQLCODE;
+@run_grant_synonym.pdc;
+exit;
+EOF
+rc=$?
+if [ $rc -ne 0 ]; then
+    echo "!!!generate database_change_grant_synonym.sql: failed!!!"
+    exit $rc
+else
+    echo "***generate database_change_grant_synonym.sql: completed***"
+fi
+
+echo "---run database_change_grant_synonym.sql---"
+"{{ oracle_home }}/bin/sqlplus" -s "{{ ibsps_db_account_nbs }}" <<EOF
+WHENEVER OSERROR EXIT FAILURE;
+WHENEVER SQLERROR EXIT SQL.SQLCODE;
+@database_change_grant_synonym.sql;
+exit;
+EOF
+rc=$?
+if [ $rc -ne 0 ]; then
+    echo "!!!run database_change_grant_synonym.sql: failed!!!"
+    exit $rc
+else
+    echo "***run database_change_grant_synonym.sql: completed***"
+fi
+
+echo "---write IBSPS_EXELOG's report---"
+"{{ oracle_home }}/bin/sqlplus" -s "{{ ibsps_db_account_nbs }}" <<EOF
+WHENEVER OSERROR EXIT FAILURE;
+WHENEVER SQLERROR EXIT SQL.SQLCODE;
+set linesize 999
+set term off verify off feedback off pagesize 9999
+set markup html on entmap on spool on preformat off
+spool IBSPS_EXELOG.htm;
+select * from IBSPS_EXELOG where EXE_RESULT<>'0';
+spool off;
+exit;
+EOF
+rc=$?
+if [ $rc -ne 0 ]; then
+    echo "!!!write IBSPS_EXELOG's report: failed!!!"
+    exit $rc
+else
+    echo "***write IBSPS_EXELOG's report: completed***"
+fi
+
+echo "***all tasks are completed***"

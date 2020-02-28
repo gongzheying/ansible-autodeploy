@@ -1,0 +1,5 @@
+---
+- name: upload BO templates
+  hosts: bo
+  roles:
+    - role: bo

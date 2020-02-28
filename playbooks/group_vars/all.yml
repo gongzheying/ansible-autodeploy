@@ -1,0 +1,28 @@
+---
+# this auto deploy tool
+acd_build_history_path: "../history"
+acd_addons_autoconfig_path: "../addons/AutomaticConfiguration.zip"
+acd_addons_templateupload_path: "../addons/TemplateUpload.zip"
+
+# database
+oracle_home: /opt/oracle/app/oracle/product/11.2.0/dbhome_1
+oracle_sid: isis2db
+oracle_dump_directory_path: /opt/oracle/dump
+oracle_dump_directory_name: dumpdata
+
+# bo4
+bo_administrator_name: Administrator
+bo_administrator_password: ABCabc123
+
+# jboss
+jboss_home: /opt/jboss/wildfly
+jboss_service_name: jboss
+
+# ibsps app
+ibsps_release_packages_path: "../ibsps_release_packages/IBSPS_V5.11.B.zip"
+ibsps_environment_configure_path: "../ibsps_environments/configuration.xml.sample"
+ibsps_db_account_nbs: nbs/nbs
+ibsps_db_account_nbs_common: nbs_common/nbs_common
+ibsps_db_current_version: 510000
+ibsps_db_next_version: 511000
+ibsps_nas_shared_directory: /ibspdata

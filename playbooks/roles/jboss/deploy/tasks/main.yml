@@ -1,0 +1,55 @@
+---
+# tasks file for deploy
+- block:
+    - name: create a build directory
+      tempfile:
+        state: directory
+        suffix: .build
+      register: deploy_build_directory_output
+
+    - name: define variables
+      set_fact:
+        ibsps_adjusted_packages: "{{ ibsps_nas_shared_directory }}/autodeployments/"
+        deploy_build_workspace: "{{ deploy_build_directory_output.path }}"
+
+    - name: deploy the ibsps realease packages to the jboss
+      shell: |
+        cd "{{ jboss_home }}/standalone" && \
+        rm -rf data tmp log && \
+        test -f "deployments/{{ ibsps_package_name }}" && \
+        mv "deployments/{{ ibsps_package_name }}" "{{ deploy_build_workspace }}" &&  cp "{{ ibsps_adjusted_packages }}/{{ ibsps_package_name }}" deployments/  || \
+        cp "{{ ibsps_adjusted_packages }}/{{ ibsps_package_name }}" deployments/
+
+      args:
+        executable: /bin/bash
+
+    - name: logging the stdout details
+      copy:
+        content: "{ 'failed': false, 'msg':'the deployment task is completed' }"
+        dest: "{{ deploy_build_workspace }}/stdout.json"
+
+  rescue:
+    - name: logging the stderr details
+      copy:
+        content: "{{ ansible_failed_result | to_nice_json }}"
+        dest: "{{ deploy_build_workspace }}/stderr.json"
+
+  always:
+    - name: create a build history archive file
+      archive:
+        path:
+          - "{{ deploy_build_workspace }}/*.ear"
+          - "{{ deploy_build_workspace }}/*.json"
+        dest: "{{ deploy_build_workspace }}/{{ inventory_hostname }}_deploy_history_{{ sysdate }}.zip"
+        format: zip
+
+    - name: save the archive file to localhost
+      fetch:
+        src: "{{ deploy_build_workspace }}/{{ inventory_hostname }}_deploy_history_{{ sysdate }}.zip"
+        dest: "{{ acd_build_history_path }}/"
+        flat: true
+
+    - name: remove the build directory
+      file:
+        path: "{{ deploy_build_workspace }}"
+        state: absent

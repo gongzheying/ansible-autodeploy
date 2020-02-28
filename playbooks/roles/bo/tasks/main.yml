@@ -1,0 +1,66 @@
+---
+# tasks file for bo
+- name: create a build directory
+  tempfile:
+    state: directory
+    suffix: .build
+  register: bo_build_directory_output
+
+- name: define variables
+  set_fact:
+    bo_templates: "{{ ibsps_release_packages_context_output.stdout | trim }}/BO Tempaltes"
+    bo_build_workspace: "{{ bo_build_directory_output.path }}"
+
+- name: copy the TemplateUpload utilities to the build directory
+  unarchive:
+    src: "{{ acd_addons_templateupload_path }}"
+    dest: "{{ bo_build_workspace }}"
+
+- name: copy the config file of TemplateUpload utilities to the build directory
+  template:
+    src: BO.conf.j2
+    dest: "{{ bo_build_workspace }}/BO.conf"
+
+- name: copy the BO templates to the build directory
+  synchronize:
+    src: "{{ item }}"
+    dest: "{{ bo_build_workspace }}/Templates/"
+  with_fileglob:
+    - "{{ bo_templates }}/*.rpt"
+
+- block:
+    - name: running the TemplateUpload utilities
+      shell: "cd '{{ bo_build_workspace }}' && java -jar bo-templateUpload.jar BO.conf"
+      args:
+        executable: /bin/bash
+      register: templateUpload_output
+
+    - name: logging the stdout details
+      copy:
+        content: "{{ templateUpload_output | to_nice_json }}"
+        dest: "{{ bo_build_workspace }}/stdout.json"
+
+  rescue:
+    - name: logging the stderr details
+      copy:
+        content: "{{ ansible_failed_result | to_nice_json }}"
+        dest: "{{ bo_build_workspace }}/stderr.json"
+
+  always:
+    - name: create a build history archive file
+      archive:
+        path:
+          - "{{ bo_build_workspace }}/*.json"
+        dest: "{{ bo_build_workspace }}/{{ inventory_hostname }}_build_history_{{ sysdate }}.zip"
+        format: zip
+
+    - name: save the archive file to localhost
+      fetch:
+        src: "{{ bo_build_workspace }}/{{ inventory_hostname }}_build_history_{{ sysdate }}.zip"
+        dest: "{{ acd_build_history_path }}/"
+        flat: true
+
+    - name: remove the build directory
+      file:
+        path: "{{ bo_build_workspace }}"
+        state: absent

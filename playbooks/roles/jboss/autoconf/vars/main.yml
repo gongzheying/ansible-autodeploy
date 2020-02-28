@@ -1,0 +1,6 @@
+---
+# vars file for autoconf
+
+remoteDeployFolder: /home/wangyx/node_dest/
+earSourceFiles: earSourceFiles
+earFiles: earFiles

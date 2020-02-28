@@ -1,0 +1,15 @@
+---
+- name: shutdown the webapp's jboss service
+  hosts: webapp
+  roles:
+    - role: jboss/shutdown
+
+- name: shutdown the executor's jboss service
+  hosts: executor
+  roles:
+    - role: jboss/shutdown
+
+- name: shutdown the scheduler's jboss service
+  hosts: scheduler
+  roles:
+    - role: jboss/shutdown

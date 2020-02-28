@@ -1,0 +1,56 @@
+---
+# tasks file for debug_facts
+- name: print remote host facts
+  debug:
+    msg: 
+      - "inventory: {{ inventory_hostname }}"
+      - "hostname: {{ ansible_hostname }}"
+      - "os: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      - "kernel: {{ ansible_kernel }} {{ ansible_architecture }}"
+      - "network: {{ ansible_default_ipv4.address }}/{{ ansible_default_ipv4.netmask }} gw {{ ansible_default_ipv4.gateway }}"
+
+- block:
+    - name: gather localhost facts
+      shell: date +%Y%m%dT%H%M%S.%3N
+      args:
+        executable: /bin/bash
+      register: system_timestamp_output
+
+    - name: get the system timestamp
+      set_fact:
+        sysdate: "{{ system_timestamp_output.stdout | trim }}"
+
+    - name: get the status of IBSPs release package
+      stat:
+        path: "{{ ibsps_release_packages_path }}"
+      register: ibsps_release_packages_status
+      failed_when: not ibsps_release_packages_status.stat.exists
+
+    - name: prepare to unzip the IBSPs release package
+      set_fact:
+        ibsps_release_packages_unpack_path: "{{ ibsps_release_packages_path | dirname }}"
+        ibsps_release_packages_basename: "{{ ibsps_release_packages_path | basename | splitext | first  }}"
+
+    - name: unzip the IBSPs release package
+      unarchive:
+        src: "{{ ibsps_release_packages_path }}"
+        dest: "{{ ibsps_release_packages_unpack_path }}"
+        remote_src: yes
+        creates: "{{ ibsps_release_packages_unpack_path }}/{{ ibsps_release_packages_basename }}"
+
+    - name: check the unzip folder of IBSPs release package
+      shell: |
+        cd "{{ ibsps_release_packages_unpack_path }}/{{ ibsps_release_packages_basename }}"
+        dirs=("*/BO Tempaltes" "*/Database scripts/*/IBSP_CHANGELOG" "*/Software Packages")
+        for dir in "${dirs[@]}"; do
+          absdir=$(find $(pwd) -type d -path "$dir")
+          test -z "$absdir" && echo "No directory matching '$(pwd)/$dir' could be found" >&2 && exit 1
+        done 
+        echo $(pwd)
+
+      args:
+        executable: /bin/bash
+      register: ibsps_release_packages_context_output
+
+  delegate_to: localhost
+  run_once: true

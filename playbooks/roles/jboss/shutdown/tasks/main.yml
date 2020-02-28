@@ -1,0 +1,13 @@
+---
+# tasks file for shutdown
+- name: check the jboss status
+  shell: "systemctl status {{jboss_service_name}} | grep 'Active:'"
+  args:
+    executable: /bin/bash
+  register: jboss_status_output
+
+- name: shutdown the jboss service
+  systemd:
+    name: "{{jboss_service_name}}"
+    state: stopped
+  when: "'Active: active (running)' in jboss_status_output.stdout"

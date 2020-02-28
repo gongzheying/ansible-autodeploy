@@ -1,0 +1,5 @@
+---
+- name: deploy the ibsps release packages to the jboss
+  hosts: webapp,executor,scheduler
+  roles:
+    - role: jboss/deploy

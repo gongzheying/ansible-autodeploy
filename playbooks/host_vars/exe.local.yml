@@ -1,0 +1,4 @@
+---
+ansible_connection: docker
+ansible_host: exe.local
+ansible_user: root

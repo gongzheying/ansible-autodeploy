@@ -1,0 +1,5 @@
+---
+- name: upgrade the nbs and nbs_common schemas
+  hosts: database
+  roles:
+    - role: database

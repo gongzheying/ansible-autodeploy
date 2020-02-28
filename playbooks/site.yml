@@ -1,0 +1,6 @@
+---
+- import_playbook: jboss_shutdown.yml
+- import_playbook: database.yml
+- import_playbook: bo.yml
+- import_playbook: jboss_deploy.yml
+- import_playbook: jboss_restart.yml

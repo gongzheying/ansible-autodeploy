@@ -1,0 +1,8 @@
+---
+# tasks file for restart
+- name: restart jboss service
+  systemd:
+    name: "{{jboss_service_name}}"
+    state: restarted
+
+

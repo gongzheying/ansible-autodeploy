@@ -1,0 +1,17 @@
+
+[database]
+db.local
+    
+[bo]
+bo.local
+
+[scheduler]
+sch.local
+    
+[executor]
+exe.local
+    
+[webapp]
+app.local
+
+
