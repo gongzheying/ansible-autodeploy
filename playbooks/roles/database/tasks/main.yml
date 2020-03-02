@@ -1,5 +1,12 @@
 ---
 # tasks file for database
+- name: find changelog utilities
+  shell: "find '{{ ibsps_release_packages_context_output.stdout | trim }}' -type d -path '*/Database scripts/*/IBSP_CHANGELOG' -exec echo '{}' \\; "
+  args:
+    executable: /bin/bash
+  register: ibsps_changelog_output
+  delegate_to: localhost
+
 - name: create a build directory
   tempfile:
     state: directory
