@@ -52,7 +52,7 @@
         cd "{{ database_build_workspace }}" && \
         find "{{ oracle_dump_directory_path }}" -name "{{ ibsps_db_current_dump }}*" -exec rm -f "{}" \;  && \
         "{{ oracle_home }}/bin/expdp" userid=\"/ as sysdba\" directory={{ oracle_dump_directory_name }} dumpfile={{ ibsps_db_current_dump }} logfile={{ ibsps_db_current_dump }}.log schemas=nbs,nbs_common content=all 
-        test $? -eq 1 &&  echo "The nbs and nbs_common data backup failed" >&2 && exit 1 
+        if [[ $? -eq 1 ]]; then  echo "The nbs and nbs_common data backup failed" >&2 && exit 1 ; fi 
         find "{{ oracle_dump_directory_path }}" -name "{{ ibsps_db_current_dump }}*" -exec cp -f "{}" . \;
 
       args:
@@ -64,7 +64,7 @@
     - name: import the changelog dump
       shell: |
         "{{ oracle_home }}/bin/impdp" "{{ ibsps_db_account_nbs }}" directory={{ oracle_dump_directory_name }} dumpfile={{ ibsps_changelog_dump }} logfile={{ ibsps_changelog_dump }}.log table_exists_action=REPLACE
-        test $? -eq 1 &&  echo "The changelog data import failed" >&2 && exit 1 
+        if [[ $rc -eq 1 ]]; then  echo "The changelog data import failed" >&2 && exit 1 ; fi 
 
       args:
         executable: /bin/bash

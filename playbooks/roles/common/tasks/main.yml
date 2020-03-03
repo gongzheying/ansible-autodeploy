@@ -44,7 +44,7 @@
         dirs=("*/BO Tempaltes" "*/Database scripts/*/IBSP_CHANGELOG" "*/Software Packages")
         for dir in "${dirs[@]}"; do
           absdir=$(find $(pwd) -type d -path "$dir")
-          test -z "$absdir" && echo "No directory matching '$(pwd)/$dir' could be found" >&2 && exit 1
+          if [[ -z "$absdir" ]]; then echo "No directory matching '$(pwd)/$dir' could be found" >&2 && exit 1 ; fi
         done 
         echo $(pwd)
 
