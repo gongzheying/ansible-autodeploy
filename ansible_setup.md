@@ -23,7 +23,7 @@
 # systemctl enable sshd.service && systemctl start sshd.service
 ```
 
-6. Make a inventory file on the Ansible Control node
+6. Make a inventory file on the Ansible Control node  
    Add connections to the managed nodes, as follows
 ```
 # echo "ansible.mgt ansible_host=172.17.0.3 ansible_port=22 ansible_user=root ansible_password=123456" > ~/ansible_hosts
