@@ -27,21 +27,23 @@
 ```
 # echo "ansible.mgt ansible_host=172.17.0.3 ansible_port=22 ansible_user=root ansible_password=123456" > ~/ansible_hosts
 ```
+    
+    You can read more about the inventory file at [How to build your inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#inventory)
 
-You can read more about the inventory file at [How to build your inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#inventory)
 
 8. Test ansible on the Ansible Control node
 ```
 # ansible -i ~/ansible_hosts all -m ping 
 ```
-
-You should see output for each host in your inventory, similar to this
-
-    ansible.mgt | SUCCESS => {
-        "ansible_facts": {
-            "discovered_interpreter_python": "/usr/bin/python"
-        },
-        "changed": false,
-        "ping": "pong"
-    }
-
+    
+    You should see output for each host in your inventory, similar to this
+```
+ansible.mgt | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+```
+    
