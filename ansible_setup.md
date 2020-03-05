@@ -13,7 +13,7 @@
 # yum install -y net-tools iproute zip unzip openssh-clients
 ```
 
-4. Install the required libraries on the Ansible Managed node s
+4. Install the required libraries on the Ansible Managed nodes
 ```
 # yum install -y net-tools iproute zip unzip openssh-server
 ```
@@ -24,6 +24,7 @@
 ```
 
 6. Make a inventory file on the Ansible Control node
+   Add connections to the managed nodes, as follows
 ```
 # echo "ansible.mgt ansible_host=172.17.0.3 ansible_port=22 ansible_user=root ansible_password=123456" > ~/ansible_hosts
 ```
