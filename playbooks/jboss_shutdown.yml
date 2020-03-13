@@ -18,4 +18,3 @@
   hosts: scheduler_master
   roles:
     - role: jboss/shutdown
-	
