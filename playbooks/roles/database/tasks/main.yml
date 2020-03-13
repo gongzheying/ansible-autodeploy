@@ -54,6 +54,7 @@
         "{{ oracle_home }}/bin/expdp" userid=\"/ as sysdba\" directory={{ oracle_dump_directory_name }} dumpfile={{ ibsps_db_current_dump }} logfile={{ ibsps_db_current_dump }}.log schemas={{ ['nbs','nbs_common'] | union(ibsps_db_account_nbs_others) | join(',') }} content=all compression=all
         if [[ $? -eq 1 ]]; then  echo "The nbs and nbs_common data backup failed" >&2 && exit 1 ; fi 
         find "{{ oracle_dump_directory_path }}" -name "{{ ibsps_db_current_dump }}*" -exec cp -f "{}" . \;
+      when: ibsps_db_enable_backup | bool
 
       args:
         executable: /bin/bash

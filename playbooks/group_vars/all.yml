@@ -22,7 +22,8 @@ jboss_service_name: jboss
 ibsps_release_packages_path: "../ibsps_release_packages/IBSPS_V5.11.B.zip"
 ibsps_environment_configure_path: "../ibsps_environments/configuration.xml.sample"
 ibsps_db_account_nbs: nbs/nbs
-ibsps_db_account_nbs_others: [nbscn]
+ibsps_db_account_nbs_others: []
 ibsps_db_current_version: 510000
 ibsps_db_next_version: 511000
+ibsps_db_enable_backup: true
 ibsps_nas_shared_directory: /ibspdata
