@@ -1,0 +1,4 @@
+---
+ansible_connection: docker
+ansible_host: sch.slave.local
+ansible_user: root

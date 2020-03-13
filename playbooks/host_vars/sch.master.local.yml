@@ -1,4 +1,4 @@
 ---
 ansible_connection: docker
-ansible_host: sch.local
+ansible_host: sch.master.local
 ansible_user: root

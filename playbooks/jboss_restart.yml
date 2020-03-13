@@ -1,6 +1,11 @@
 ---
 - name: restart the scheduler's jboss service
-  hosts: scheduler
+  hosts: scheduler_master
+  roles:
+    - role: jboss/restart
+    
+- name: shutdown the scheduler's jboss service
+  hosts: scheduler_slave
   roles:
     - role: jboss/restart
 
@@ -13,3 +18,4 @@
   hosts: webapp
   roles:
     - role: jboss/restart
+

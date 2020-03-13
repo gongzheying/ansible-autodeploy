@@ -1,17 +1,23 @@
-
 [database]
 db.local
     
 [bo]
 bo.local
 
-[scheduler]
-sch.local
+[scheduler:children]
+scheduler_master
+scheduler_slave
     
 [executor]
 exe.local
     
 [webapp]
 app.local
+
+[scheduler_master]
+sch.master.local
+
+[scheduler_slave]
+sch.slave.local
 
 

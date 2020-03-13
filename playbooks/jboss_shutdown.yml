@@ -10,6 +10,12 @@
     - role: jboss/shutdown
 
 - name: shutdown the scheduler's jboss service
-  hosts: scheduler
+  hosts: scheduler_slave
   roles:
     - role: jboss/shutdown
+
+- name: shutdown the scheduler's jboss service
+  hosts: scheduler_master
+  roles:
+    - role: jboss/shutdown
+	

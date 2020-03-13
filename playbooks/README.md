@@ -15,10 +15,9 @@ Add the hosts to the group they belong to, like the following example
     # only the master can be specified if the cluster is configured
     bo.local
 
-    [scheduler]
-    # ibsps schedule server
-    # all members of the schedule cluster need to be added here
-    sch.local
+    [scheduler:children]
+    scheduler_master
+    scheduler_slave
         
     [executor]
     # ibsps execution  server
@@ -29,6 +28,18 @@ Add the hosts to the group they belong to, like the following example
     # ibsps web server
     # all members of the schedule cluster need to be added here
     app.local
+    
+    [scheduler_master]
+    # ibsps schedule server
+    # all members of the schedule cluster master nodes need to be added here
+    # if schedule cluster have only one node, it should to be added here.
+    sch.master.local
+
+    [scheduler_slave]
+    # ibsps schedule server
+    # all members of the schedule cluster slave nodes need to be added here
+    # if the schedule cluster does not have slave node, it should be blank here.
+    sch.slave.local
 
 
 For more details, check the ansible [inventory documentation](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html).
