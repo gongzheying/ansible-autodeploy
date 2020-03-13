@@ -162,14 +162,17 @@ Directory structure description in the ibsps package
     # The oracle connect string of the nbs schema
     ibsps_db_account_nbs: nbs/nbs
 
-    # The other nbs schema names, separated by commas 
-    ibsps_db_account_nbs_others: [nbscn]
+    # The other nbs schema names which separated by commas, if nothing left an empty array 
+    ibsps_db_account_nbs_others: []
 
     # The current version of ibsps changelog
     ibsps_db_current_version: 510000
 
     # The upgrade version of ibsps chagnelog
     ibsps_db_next_version: 511000
+    
+    # Enable the database backup before upgrading
+    ibsps_db_enable_backup: true
 
     # The share folder between the jboss nodes that needs to be able to create sub directories and files
     ibsps_nas_shared_directory: /ibspdata
