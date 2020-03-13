@@ -19,8 +19,7 @@ echo "---set IBSPS_SCHEMAS's version and connstr---"
 "{{ oracle_home }}/bin/sqlplus" -s "{{ ibsps_db_account_nbs }}" <<EOF
 WHENEVER OSERROR EXIT FAILURE;
 WHENEVER SQLERROR EXIT SQL.SQLCODE;
-update IBSPS_SCHEMAS set CONN_STRING='conn {{ ibsps_db_account_nbs }}@{{ oracle_sid }}', VERSION='{{ ibsps_db_current_version }}' where SCHEMA_TYPE='NBS';
-update IBSPS_SCHEMAS set CONN_STRING='conn {{ ibsps_db_account_nbs_common }}@{{ oracle_sid }}', VERSION='{{ ibsps_db_current_version }}' where SCHEMA_TYPE='NBS_COMMON';
+update IBSPS_SCHEMAS set VERSION='{{ ibsps_db_current_version }}';
 delete from IBSPS_EXELOG;
 commit;
 exit;

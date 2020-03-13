@@ -162,8 +162,8 @@ Directory structure description in the ibsps package
     # The oracle connect string of the nbs schema
     ibsps_db_account_nbs: nbs/nbs
 
-    # The oracle connect string of the nbs_common schema
-    ibsps_db_account_nbs_common: nbs_common/nbs_common
+    # The other nbs schema names, separated by commas 
+    ibsps_db_account_nbs_others: [nbscn]
 
     # The current version of ibsps changelog
     ibsps_db_current_version: 510000
