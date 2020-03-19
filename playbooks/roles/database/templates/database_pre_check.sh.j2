@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+"{{ oracle_home }}/bin/sqlplus" -s "{{ ibsps_db_account_nbs }}" <<EOF
+WHENEVER OSERROR EXIT FAILURE;
+WHENEVER SQLERROR EXIT SQL.SQLCODE;
+set heading off
+set echo off
+set flush off
+set feedback off
+set pagesize 9999
+set linesize 9999
+set long 9999
+select 'count_num='||count(*)
+  from nbs.ibsps_exelog s
+  left join nbs.ibsps_changelog l
+    on l.changelog_seq = s.changelog_seq
+ where l.version = '{{ ibsps_db_next_version }}' ;
+exit;
+EOF

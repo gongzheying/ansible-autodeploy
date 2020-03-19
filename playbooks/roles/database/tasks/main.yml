@@ -18,7 +18,37 @@
     ibsps_changelog_dir: "{{ ibsps_changelog_output.stdout | trim }}"
     database_build_workspace: "{{ database_build_directory_output.path }}"
 
+
+
 - block:
+
+    - name: genreate the pre-check scripts
+      template:
+        src: database_pre_check.sh.j2
+        dest: "{{ database_build_workspace }}/database_pre_check.sh"
+        mode: "0755"
+
+    - name: execute the pre-check scripts
+      shell: "cd '{{ database_build_workspace }}' && ./database_pre_check.sh"
+      args:
+        executable: /bin/bash
+      register: database_pre_check_output
+      environment:
+        ORACLE_HOME: "{{ oracle_home }}"
+        ORACLE_SID: "{{ oracle_sid }}"
+
+    - block:
+        - name: whether continue prompt
+          pause:
+            prompt: "Execution records of {{ ibsps_db_next_version }} changelog already existsis. 'yes' continue, others exit"
+          register: is_continue
+
+        - fail:
+            msg: "User cancelled the operation"
+          when: not is_continue.user_input | bool
+
+      when: "'count_num=0' not in database_pre_check_output.stdout_lines"
+
     - name: copy the changelog utilities to the build directory
       copy:
         src: "{{ item }}"
@@ -54,13 +84,14 @@
         "{{ oracle_home }}/bin/expdp" userid=\"/ as sysdba\" directory={{ oracle_dump_directory_name }} dumpfile={{ ibsps_db_current_dump }} logfile={{ ibsps_db_current_dump }}.log schemas={{ ['nbs','nbs_common'] | union(ibsps_db_account_nbs_others) | join(',') }} content=all compression=all
         if [[ $? -eq 1 ]]; then  echo "The nbs and nbs_common data backup failed" >&2 && exit 1 ; fi 
         find "{{ oracle_dump_directory_path }}" -name "{{ ibsps_db_current_dump }}*" -exec cp -f "{}" . \;
-      when: ibsps_db_enable_backup | bool
 
       args:
         executable: /bin/bash
       environment:
         ORACLE_HOME: "{{ oracle_home }}"
         ORACLE_SID: "{{ oracle_sid }}"
+      when: ibsps_db_enable_backup | default(false) | bool
+
 
     - name: import the changelog dump
       shell: |
