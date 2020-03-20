@@ -35,7 +35,7 @@
         ORACLE_SID: "{{ oracle_sid }}"
 
     - fail:
-        msg: "There are {{ ibsps_db_next_version }} records in ibsps_exelog, please review if database deployment had duplicate execution."
+        msg: "There are v{{ ibsps_db_next_version }} records in ibsps_exelog, please review if database deployment had duplicate execution."
       when: "'count_num=0' not in database_pre_check_output.stdout_lines"
 
     - name: copy the changelog utilities to the build directory
