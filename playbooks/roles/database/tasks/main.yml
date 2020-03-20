@@ -18,10 +18,7 @@
     ibsps_changelog_dir: "{{ ibsps_changelog_output.stdout | trim }}"
     database_build_workspace: "{{ database_build_directory_output.path }}"
 
-
-
 - block:
-
     - name: genreate the pre-check scripts
       template:
         src: database_pre_check.sh.j2
@@ -37,16 +34,8 @@
         ORACLE_HOME: "{{ oracle_home }}"
         ORACLE_SID: "{{ oracle_sid }}"
 
-    - block:
-        - name: whether continue prompt
-          pause:
-            prompt: "Execution records of {{ ibsps_db_next_version }} changelog already existsis. 'yes' continue, others exit"
-          register: is_continue
-
-        - fail:
-            msg: "User cancelled the operation"
-          when: not is_continue.user_input | bool
-
+    - fail:
+        msg: "There are {{ ibsps_db_next_version }} records in ibsps_exelog, please review if database deployment had duplicate execution."
       when: "'count_num=0' not in database_pre_check_output.stdout_lines"
 
     - name: copy the changelog utilities to the build directory
@@ -92,11 +81,10 @@
         ORACLE_SID: "{{ oracle_sid }}"
       when: ibsps_db_enable_backup | default(false) | bool
 
-
     - name: import the changelog dump
       shell: |
         "{{ oracle_home }}/bin/impdp" "{{ ibsps_db_account_nbs }}" directory={{ oracle_dump_directory_name }} dumpfile={{ ibsps_changelog_dump }} logfile={{ ibsps_changelog_dump }}.log table_exists_action=REPLACE
-        if [[ $rc -eq 1 ]]; then  echo "The changelog data import failed" >&2 && exit 1 ; fi 
+        if [[ $rc -eq 1 ]]; then  echo "The changelog data import failed" >&2 && exit 1 ; fi
 
       args:
         executable: /bin/bash
