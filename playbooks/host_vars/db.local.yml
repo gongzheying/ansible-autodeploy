@@ -1,7 +1,0 @@
----
-ansible_connection: ssh
-ansible_host: db.local
-ansible_user: root
-ansible_become: true
-ansible_become_method: su
-ansible_become_user: oracle

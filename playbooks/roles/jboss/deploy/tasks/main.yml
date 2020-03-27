@@ -9,7 +9,6 @@
 
     - name: define variables
       set_fact:
-        ibsps_adjusted_packages: "{{ ibsps_nas_shared_directory }}/autodeployments/"
         deploy_build_workspace: "{{ deploy_build_directory_output.path }}"
 
     - name: deploy the ibsps realease packages to the jboss
@@ -17,8 +16,8 @@
         cd "{{ jboss_home }}/standalone" && \
         rm -rf data tmp log && \
         if [[ -f "deployments/{{ ibsps_package_name }}" ]]; \
-        then mv "deployments/{{ ibsps_package_name }}" "{{ deploy_build_workspace }}" &&  cp "{{ ibsps_adjusted_packages }}/{{ ibsps_package_name }}" deployments/ ; \
-        else cp "{{ ibsps_adjusted_packages }}/{{ ibsps_package_name }}" deployments/ ; \
+        then mv "deployments/{{ ibsps_package_name }}" "{{ deploy_build_workspace }}" &&  cp "autodeployments/{{ ibsps_package_name }}" deployments/ ; \
+        else cp "autodeployments/{{ ibsps_package_name }}" deployments/ ; \
         fi
 
       args:

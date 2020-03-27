@@ -1,17 +1,46 @@
 ---
 # tasks file for autoconf
+- name: find the enviroment configuration file
+  shell: |
+    cd "{{ ibsps_environment_configure_path }}"
+    if [ -f "{{ inventory_hostname }}_configuration.xml" ]; then
+      echo "{{ inventory_hostname }}_configuration.xml"
+      exit 0
+    fi
+
+    {% for group_name in group_names %}
+    if [ -f "{{ group_name }}_configuration.xml" ]; then
+      echo "{{ group_name }}_configuration.xml"
+      exit 0
+    fi
+    {% endfor %}
+
+    if [ -f "configuration.xml" ]; then
+      echo "configuration.xml"
+      exit 0
+    fi
+
+    echo "No matching configuration file could be found" >&2 
+    exit 1
+
+  args:
+    executable: /bin/bash
+  register: autoconf_file_output
+  delegate_to: localhost
+
+- name: create a build directory
+  tempfile:
+    state: directory
+    suffix: .build
+  register: autoconf_build_directory_output
+
+- name: define variables
+  set_fact:
+    ibsps_release_packages: "{{ ibsps_release_packages_context_output.stdout | trim }}/Software Packages"
+    ibsps_environment_configure_file: "{{ ibsps_environment_configure_path }}/{{ autoconf_file_output.stdout | trim }}"
+    autoconf_build_workspace: "{{ autoconf_build_directory_output.path }}"
+
 - block:
-    - name: create a build directory
-      tempfile:
-        state: directory
-        suffix: .build
-      register: autoconf_build_directory_output
-
-    - name: define variables
-      set_fact:
-        ibsps_release_packages: "{{ ibsps_release_packages_context_output.stdout | trim }}/Software Packages"
-        autoconf_build_workspace: "{{ autoconf_build_directory_output.path }}"
-
     - name: copy the AutomaticConfiguration utilities to the build directory
       unarchive:
         src: "{{ acd_addons_autoconfig_path }}"
@@ -19,7 +48,7 @@
 
     - name: copy the config file of AutomaticConfiguration utilities to the build directory
       copy:
-        src: "{{ ibsps_environment_configure_path }}"
+        src: "{{ ibsps_environment_configure_file }}"
         dest: "{{ autoconf_build_workspace }}/configuration.xml"
 
     - name: copy the ibsps realease packages to the build directory
@@ -51,16 +80,16 @@
         msg: "{{ autoconf_output.stderr }}"
       when: autoconf_output.stderr != "" or autoconf_result.stat.size > 0
 
-    - name: prepare to copy the adjusted ibsps realease packages to the shared directory
+    - name: prepare to copy the adjusted ibsps realease packages to the auto deployment directory
       file:
-        path: "{{ ibsps_nas_shared_directory }}/autodeployments/"
+        path: "{{ jboss_home }}/standalone/autodeployments/"
         state: directory
         mode: "0755"
 
-    - name: copy the adjusted ibsps realease packages to the shared directory
+    - name: copy the adjusted ibsps realease packages to the auto deployment directory
       shell: |
-        cd "{{ ibsps_nas_shared_directory }}/autodeployments/" && \
-        find "{{ autoconf_build_workspace }}/earFiles/" -name "*.ear" -exec cp "{}" .  \;
+        cd "{{ jboss_home }}/standalone/autodeployments/" && \
+        find "{{ autoconf_build_workspace }}/earFiles/" -name "{{ ibsps_package_name }}" -exec cp "{}" .  \;
 
     - name: logging the stdout details
       copy:
@@ -73,7 +102,8 @@
         content: "{{ ansible_failed_result | to_nice_json }}"
         dest: "{{ autoconf_build_workspace }}/stderr.json"
 
-    - fail:
+    - name: system failure
+      fail:
         msg: "an error occurred and the next tasks need to be stopped immediately"
 
   always:
@@ -82,12 +112,13 @@
         path:
           - "{{ autoconf_build_workspace }}/ConfigurationError.Log"
           - "{{ autoconf_build_workspace }}/*.json"
-        dest: "{{ autoconf_build_workspace }}/autoconf_history_{{ sysdate }}.zip"
+          - "{{ autoconf_build_workspace }}/configuration.xml"
+        dest: "{{ autoconf_build_workspace }}/{{ inventory_hostname }}_autoconf_history_{{ sysdate }}.zip"
         format: zip
 
     - name: save the archive file to localhost
       fetch:
-        src: "{{ autoconf_build_workspace }}/autoconf_history_{{ sysdate }}.zip"
+        src: "{{ autoconf_build_workspace }}/{{ inventory_hostname }}_autoconf_history_{{ sysdate }}.zip"
         dest: "{{ acd_build_history_path }}/"
         flat: true
 
@@ -95,5 +126,3 @@
       file:
         path: "{{ autoconf_build_workspace }}"
         state: absent
-
-  run_once: true

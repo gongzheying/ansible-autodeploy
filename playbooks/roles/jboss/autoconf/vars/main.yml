@@ -1,6 +1,3 @@
 ---
 # vars file for autoconf
-
-remoteDeployFolder: /home/wangyx/node_dest/
-earSourceFiles: earSourceFiles
-earFiles: earFiles
+ibsps_package_name: "{{ 'seurat-web-ci.ear' if 'webapp' in group_names else 'job-execution-ci.ear' if 'executor' in group_names else 'job-schedule-ci.ear' }}"
