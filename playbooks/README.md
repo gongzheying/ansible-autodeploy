@@ -78,7 +78,7 @@ This tool needs to replace the environment variables in the ibsps release packag
 
 1. Used for a specific host, and has the highest priority, for example _exe.cluster_a.local_\_configuration.xml
 2. Used for all hosts in a specific group, and has the medium priority, for example _executor_cluster_a_\_configuration.xml
-3. Used for all hosts in a specific group, and has the lowest priority
+3. Used for all hosts, and has the lowest priority
 
 Refer to the template _../ibsps_environments/configuration.xml.sample_ to customize the environment variables, for more details, check the ibsps document &lt;&lt;IBSPs Installation and Deployment Manual.doc&gt;&gt;
 
