@@ -9,64 +9,120 @@ all:
   children:
     database: # oracle database
       hosts: # including nbs and nbs_common schemas and only the master can be specified if the cluster is configured
-        db.local:
-      vars: # setup the hosts connection info
-        # connection type to the host
-        ansible_connection: ssh
-        # the name of the host to connect to, if different from the alias you wish to give to it.
-        ansible_host: db.local
-        # the user name to use when connecting to the host
-        ansible_user: root
-        # allows to force privilege escalation
-        ansible_become: true
-        # allows to set privilege escalation method
-        ansible_become_method: su
-        # allows to set the user you become through privilege escalation
-        ansible_become_user: oracle
+        db.local: # configure ssh connection
+          # connection type to the host
+          ansible_connection: ssh
+          # the name of the host to connect to, if different from the alias you wish to give to it.
+          ansible_host: db.local
+          # the user name to use when connecting to the host
+          ansible_user: root
+          # the password to use to authenticate to the host
+          ansible_password: root
+          # allows to force privilege escalation
+          ansible_become: true
+          # allows to set privilege escalation method
+          ansible_become_method: su
+          # allows to set the user you become through privilege escalation
+          ansible_become_user: oracle
 
     bo: # sap bo server
-      children: # multiple clusters can be added here, and only one master can be specified per cluster
-        bo_cluster_a:
-          hosts:
-            bo.cluster_a.local:
-        bo_cluster_b:
-          hosts:
-            bo.cluster_b.local:
-      vars:
-        ansible_connection: docker
+      children: # can define one or more bo clusters here
+        bo_cluster_a: # bo cluster alias
+          hosts: # only one bo master node needs to be defined in this cluster
+            bo.cluster_a.local: # configure ssh connection
+              ansible_connection: ssh
+
+        ### double bo cluster configuration ###
+        #bo_cluster_a:
+        #  hosts:
+        #    bo.cluster_a.local:
+        #      ansible_connection: ssh
+        #bo_cluster_b:
+        #  hosts:
+        #    bo.cluster_b.local:
+        #      ansible_connection: ssh
 
     webapp: # ibsps webapp server
-      hosts: # all members of the webapp server need to be added here
-        app.local:
-      vars:
-        ansible_connection: docker
+      hosts: # can define one or more webapp node here
+        app.local: # configure ssh connection
+          ansible_connection: ssh
 
     scheduler: # ibsps schedule server
       children:
-        scheduler_master: # all members of the schedule master need to be added here
-          hosts:
-            sch.master.local:
+        scheduler_master: # schedule master
+          hosts: # all members of the schedule master need to be added here
+            sch.master.local: # configure ssh connection
+              ansible_connection: ssh
 
-        scheduler_slave: # all members of the schedule salve need to be added here
-          hosts:
-            sch.slave.local:
-      vars:
-        ansible_connection: docker
+        scheduler_slave: # schedule salve
+          hosts: # all members of the schedule salve need to be added here
+            sch.slave.local: # configure ssh connection
+              ansible_connection: ssh
 
     executor: # ibsps execution server
-      children: # multiple clusters can be added here
-        executor_cluster_a:
+      children: # can define one or more executor clusters here
+        executor_cluster_a: # executor cluster alias
           hosts: # all members of this executor cluster need to be added here
-            exe.cluster_a.local:
-
-        executor_cluster_b:
-          hosts:
-            exe.cluster_b.local:
-      vars:
-        ansible_connection: docker
+            exe.cluster_a.local: # configure ssh connection
+              ansible_connection: ssh
+              
+        ### double execution cluster configuration ###
+        #executor_cluster_a:
+        #  hosts:
+        #    exe.cluster_a.local:
+        #      ansible_connection: ssh
+        #executor_cluster_b:
+        #  hosts:
+        #    exe.cluster_b.local:
+        #      ansible_connection: ssh
 ```
 
-For more details, check the ansible [inventory documentation](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) and [connection plugins documentation](https://docs.ansible.com/ansible/latest/plugins/connection.html) .
+Here are a few scenarios of configuring SSH connections, for more details, check the ansible [inventory documentation](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) and [connection plugins documentation](https://docs.ansible.com/ansible/latest/plugins/connection.html) .
+
+Scenario 1:	Log in with password
+
+    ansible_connection: ssh
+    ansible_host: db.local 
+    ansible_user: root 
+    ansible_password: root
+
+Scenario 2:	Log in with private key
+
+    ansible_connection: ssh
+    ansible_host: db.local
+    ansible_user: root 
+    ansible_ssh_private_key_file: ¡°private-key-pair.pem¡±
+
+Scenario 3:	Log in with password and need to sudo user
+
+    ansible_connection: ssh
+    ansible_host: db.local 
+    ansible_user: ec2-user 
+    ansible_password: ec2-user 
+    ansible_become: true 
+    ansible_become_method: sudo 
+    ansible_become_user: oracle 
+    ansible_become_flags: ¡°-i¡±
+
+Scenario 4:	 Log in with private key and need to sudo user
+
+    ansible_connection: ssh
+    ansible_host: db.local 
+    ansible_user: ec2-user
+    ansible_ssh_private_key_file: ¡°private-key-pair.pem¡± 
+    ansible_become: true 
+    ansible_become_method: sudo 
+    ansible_become_user: oracle 
+    ansible_become_flags: ¡°-i¡±
+
+Note, please execute the following command to check if the SSH connection parameters are configured correctly
+
+    # ansible -i hosts.yml all -m ping
+    
+If everything is correct, you should see output for each host in your inventory, similar to this:
+
+    db.local | SUCCESS => {"ansible_facts": {    "discovered_interpreter_python": "/usr/bin/python"},"changed": false,"ping": "pong"}
+
 
 # Step 2. Setup the ibsps environment variables
 
@@ -117,18 +173,11 @@ Directory structure description in the ibsps package
 
 # Step 4. Configure the playbooks environment variables
 
-> Edit file _group_vars/all.yml_
+Before the first run, you need to set the properties in _playbooks/group_vars/all.yml_ correctly according to the following example 
 
 ```yaml
-    ---
     # The directory is used to store the build history archive files
     acd_build_history_path: "../history"
-
-    # The file path of the automatic configure tool
-    acd_addons_autoconfig_path: "../addons/AutomaticConfiguration.zip"
-
-    # The file path of the template upload tool
-    acd_addons_templateupload_path: "../addons/TemplateUpload.zip"
 
     # The oracle home directory on the database node
     oracle_home: /opt/oracle/app/oracle/product/11.2.0/dbhome_1
@@ -176,11 +225,18 @@ Directory structure description in the ibsps package
     ibsps_db_enable_backup: true
 ```
 
+In future releases, only the following attributes need to be modified
+
+    ibsps_release_packages_path 
+    ibsps_db_current_version
+    ibsps_db_current_version
+
+
 # Step 5. Run playbook
 
 - Full site
 
-> ansible-playbook _site.yml_
+> ansible-playbook _site_bo_database_parallel.yml_
 
 - Update the nbs and nbs_common schemas
 
