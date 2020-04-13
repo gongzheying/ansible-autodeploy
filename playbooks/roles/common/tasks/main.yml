@@ -30,8 +30,13 @@
       set_fact:
         ibsps_release_packages_unpack_path: "{{ ibsps_release_packages_path | dirname }}"
         ibsps_release_packages_basename: "{{ ibsps_release_packages_path | basename | splitext | first  }}"
+        delay_seconds: "{{ 10 | random(step=5) }}"
 
-    - name: unzip the IBSPs release package
+    - name: wait for other unzip processes to complete
+      wait_for:
+        timeout: "{{delay_seconds | int}}"
+
+    - name: unzip the IBSPs release package if necessary
       unarchive:
         src: "{{ ibsps_release_packages_path }}"
         dest: "{{ ibsps_release_packages_unpack_path }}"
@@ -53,4 +58,4 @@
       register: ibsps_release_packages_context_output
 
   delegate_to: localhost
-  run_once: true
+
